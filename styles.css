@@ -18,6 +18,16 @@ body
 
 }
 
+.active
+{
+    border: black solid 2px;
+}
+
+.white
+{
+    background-color: white;
+}
+
 /* tetrominoes */
 
 .line-shape
@@ -54,3 +64,4 @@ body
 {
     background-color: red;
 }
+

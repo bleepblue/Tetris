@@ -15,6 +15,28 @@ function main(currentTime)
 
 window.requestAnimationFrame(main)
 
+
+
+
+function 
+/* game update logic
+
+game redraws at regular intervals (for gravity) OR after input (that is not blocked)
+also redraws after line deletion in blocks module
+only active piece is redrawn
+
+*/
+
+/* must remake tetrminoes module - 0 is spawn co ordinates (on real grid) and the other positions are relative to spawn position
+   every time the tetromino moves, all its co ordinates are updated. what is drawn is whatever the current position is. 
+   obviously will have to check that move is possible first.
+   copy object from module into new 'active' object in this module.
+   the function that checks if the move is possible calls the 'add block' function in blocks module if 
+   gravity or hard drop or soft drop caused the active block to be blocked by the blocks. 
+   then the active block is deleted and a new block is spawned.
+*/
+
+
 /*
 game logic
 

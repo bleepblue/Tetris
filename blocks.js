@@ -1,5 +1,7 @@
 let blocks = []
 
+// create 2D array of game board with object for each square
+
 for (let i = 0; i < 20; i++)
 {
     blocks[i] = []
@@ -8,6 +10,15 @@ for (let i = 0; i < 20; i++)
         blocks[i][j] = {isOccupied: false, color: ''}
     }
 }
+
+// add tetromino to blocks
+
+function addBlocks ()
+{
+    //TODO
+}
+
+//  check if the added blocks complete any lines
 
 function checkLineCompletion ()
 {
@@ -31,9 +42,11 @@ function checkLineCompletion ()
     return rows
 }
 
+// get DOM reference to lines to be deleted
 
-function deleteLines(rows)
+function getLines(rows)
 {
+
     const allBlocks = document.querySelector('#game-board').childNodes
     let deleteList = []
     rows.forEach(row => {
@@ -44,32 +57,76 @@ function deleteLines(rows)
             }
         })
     });
+    return deleteList
+}
 
+// flash lines to be deleted
+
+function flash (deleteList)
+{
     let count = 0
 
-    const intervalID = setInterval(() => {
+    const intervalID = setInterval(() => 
+    {
         deleteList.forEach(item=>{
             item.classList.add('white')
         })
-        setTimeout(() => {
+
+        setTimeout(() => 
+        {
             deleteList.forEach(item=>{
                 item.classList.remove('white')
             })
-        }, 150)
-        count++
-    }, 300)
-
-    while(count < 3)
-    {
-        continue
-    }
-    clearInterval(intervalID)
-
-    x
-
-
+        }, 
+        150)
+        if (count === 3)
+        {
+            clearInterval(intervalID)
+        }
+    }, 
+    300)
 }
 
+//delete blocks
+
+function deleteBlocks(rows)
+{
+    rows.forEach(row =>
+    {
+        blocks[row].forEach(element =>
+        {
+            element.isOccupied = false
+        })
+    })
+}
+
+// move all blocks down
+
+function gravity (rows)
+{
+    const lines = rows.length
+    let topRow = rows[0]
+    rows.forEach(row => 
+        {
+            if (row < topRow)
+            {
+                topRow = row
+            }
+        })
+    for (let i = topRow - 1; i >= 0; i--)
+    {
+        for (let j = 0; j <= 9; j++)
+        {
+            if(blocks[i][j].isOccupied === true)
+            {
+            blocks[i][j].isOccupied = false
+            const color = blocks[i][j].color
+            blocks[i + lines][j].isOccupied = true
+            blocks[i + lines][j].color = color
+            }
+        }
+    }
+}
 
 
 
