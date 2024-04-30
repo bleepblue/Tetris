@@ -1,65 +1,64 @@
-/* each tetromino is located in 4 x 4 space, numbered 1 - 4 with the top left corner being 1,1 (as in CSS Grid). 
-Each tetromino has co-ordinates for each of its four squares. Its rotational positions are marked as 0 to (potentially) 3,
-with 0 representing its spawn shape, 1 being a clockwise turn from spawn and 3 a counter-clockwise turn.
-Its spawn location is marked in CSS Grid co-ordinates.   */
+// 0 = spawn location. other rotations are relative to spawn location.
 
-let I_shape = 
+export const tetrominoes = [I_shape, J_shape, L_shape, O_shape, S_shape, T_shape, Z_shape]
+
+export let I_shape = 
 {
     current_rotation: 0,
-    spawn: [{x: 4, y: 1}, {x: 5, y: 1}, {x: 6, y: 1}, {x: 7, y: 1}],
-    0: [{x: 1, y: 2}, {x: 2, y: 2}, {x: 3, y: 2}, {x: 4, y: 2}],
-    1: [{x: 2, y: 1}, {x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+    color: "cyan",
+    0: [{x:4,y:1},{x:5,y:1},{x:6,y:1},{x:7,y:1}],
+    1: [{x:5,y:0},{x:5,y:1},{x:5,y:2},{x:5,y:3}]
 }
 
-let J_shape = 
+export let J_shape = 
 {
     current_rotation: 0,
-    spawn: [{x: 4, y: 1}, {x: 4, y: 2}, {x: 5, y: 2}, {x: 6, y: 2}],
-    0: [{x: 2, y: 2}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}],
-    1: [{x: 3, y: 2}, {x: 4, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}],
-    2: [{x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}, {x: 4, y: 4}],
-    3: [{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}, {x: 2, y: 4}]
+    color: "blue",
+    0: [{x:4,y:1},{x:4,y:2},{x:5,y:2},{x:6,y:2}],
+    1: [{x:5,y:1},{x:6,y:1},{x:5,y:2},{x:5,y:3}],
+    2: [{x:4,y:2},{x:5,y:2},{x:6,y:2},{x:6,y:3}],
+    3: [{x:5,y:1},{x:5,y:2},{x:5,y:3},{x:4,y:3}]
 }
 
-let L_shape =
+export let L_shape =
 {
     current_rotation: 0,
-    spawn: [{x: 4, y: 2}, {x: 5, y: 2}, {x: 6, y: 2}, {x: 5, y: 1}],
-    0: [{x: 4, y: 2}, {x: 4, y: 3}, {x: 3, y: 3}, {x: 2, y: 3}],
-    1: [{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}, {x: 4, y: 4}],
-    2: [{x: 2, y: 4}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}],
-    3: [{x: 2, y: 2}, {x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}]
+    color: "orange",
+    0: [{x:6,y:1},{x:6,y:2},{x:5,y:2},{x:4,y:2}],
+    1: [{x:5,y:1},{x:5,y:2},{x:5,y:3},{x:6,y:3}],
+    2: [{x:4,y:3},{x:4,y:2},{x:5,y:2},{x:6,y:2}],
+    3: [{x:4,y:1},{x:5,y:1},{x:5,y:2},{x:5,y:3}]
 }
 
-let O_shape =
+export let O_shape =
 {
     current_rotation: 0,
-    spawn: [{x: 5, y: 1}, {x: 6, y: 1}, {x: 5, y: 2}, {x: 6, y: 2}],
-    0: [{x: 2, y: 2}, {x: 3, y: 2}, {x: 2, y: 3}, {x: 3, y: 3}]
+    color: "yellow",
+    0: [{x:5,y:1},{x:6,y:1},{x:5,y:2},{x:6,y:2}]
 }
 
-let S_shape = 
+export let S_shape = 
 {
     current_rotation: 0,
-    spawn: [{x: 5, y: 1}, {x: 6, y: 1}, {x: 4, y: 2}, {x: 5, y: 2}],
-    0: [{x: 3, y: 2}, {x: 4, y: 2}, {x: 2, y: 3}, {x: 3, y: 3}],
-    1: [{x: 2, y: 2}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 3, y: 4}]
+    color: "green",
+    0: [{x:5,y:1},{x:6,y:1},{x:4,y:2},{x:5,y:2}],
+    1: [{x:4,y:1},{x:4,y:2},{x:5,y:2},{x:5,y:3}]
 }
 
-let T_shape = 
+export let T_shape = 
 {
     current_rotation: 0,
-    spawn: [{x: 5, y: 1}, {x: 4, y: 2}, {x: 5, y: 2}, {x: 6, y: 2}],
-    0: [{x: 3, y: 2}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}],
-    1: [{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}, {x: 4, y: 3}],
-    2: [{x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}, {x: 3, y: 4}],
-    3: [{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}, {x: 2, y: 3}]
+    color: "purple",
+    0: [{x:5,y:1},{x:4,y:2},{x:5,y:2},{x:6,y:2}],
+    1: [{x:5,y:1},{x:5,y:2},{x:5,y:3},{x:6,y:2}],
+    2: [{x:4,y:2},{x:5,y:2},{x:6,y:2},{x:5,y:3}],
+    3: [{x:5,y:1},{x:5,y:2},{x:5,y:3},{x:4,y:2}]
 }
 
-let Z_shape =
+export let Z_shape =
 {
     current_rotation: 0,
-    spawn: [{x: 4, y: 1}, {x: 5, y: 1}, {x: 5, y: 2}, {x: 6, y: 2}],
-    0: [{x: 2, y: 2}, {x: 3, y: 2}, {x: 3, y: 3}, {x: 4, y: 3}],
-    1: [{x: 3, y: 2}, {x: 3, y: 3}, {x: 2, y: 3}, {x: 2, y: 4}]
+    color: "red",
+    0: [{x:4,y:1},{x:5,y:1},{x:5,y:2},{x:6,y:2}],
+    1: [{x:5,y:1},{x:5,y:2},{x:4,y:2},{x:4,y:3}]
 }

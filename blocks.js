@@ -1,4 +1,4 @@
-let blocks = []
+export let blocks = []
 
 // create 2D array of game board with object for each square
 
@@ -13,9 +13,10 @@ for (let i = 0; i < 20; i++)
 
 // add tetromino to blocks
 
-function addBlocks ()
+export function addBlocks ()
 {
     //TODO
+    console.log("silly boy")
 }
 
 //  check if the added blocks complete any lines

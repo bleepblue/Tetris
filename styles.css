@@ -18,11 +18,6 @@ body
 
 }
 
-.active
-{
-    border: black solid 2px;
-}
-
 .white
 {
     background-color: white;
@@ -30,37 +25,37 @@ body
 
 /* tetrominoes */
 
-.line-shape
+.cyan
 {
     background-color: cyan;
 }
 
-.square-shape
+.yellow
 {
     background-color: yellow;
 }
 
-.t-shape
+.purple
 {
     background-color: purple;
 }
 
-.j-shape
+.blue
 {
     background-color: blue;
 }
 
-.l-shape
+.orange
 {
     background-color: orange;
 }
 
-.s-shape
+.green
 {
     background-color: rgb(32, 224, 87);
 }
 
-.z-shape
+.red
 {
     background-color: red;
 }
