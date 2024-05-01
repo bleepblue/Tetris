@@ -2,26 +2,35 @@
 import { tetrominoes, I_shape, L_shape, J_shape, O_shape, S_shape, Z_shape, T_shape } from "./tetrominoes.js"
 import { blocks } from "./blocks.js"
 import { addBlocks } from "./blocks.js"
+import { gameSpeed } from "./score.js"
+
+// TODO: 
+
+
+//clean up code (ie move movement/input to separate module)
+//aesthetic features (including score counter and music)
+//pause
 
 let lastBlockFall = 0
-let gameSpeed = 1
-let activeTetromino = {}
-
+export let activeTetromino = {}
+let intervalID
 
 function main(currentTime) 
 {
     window.requestAnimationFrame(main)
-    if (input)
-    if ((currentTime - lastRender) / 1000 < 1 / gameSpeed) return
-    console.log("tetromino goes down")    
+    if ((currentTime - lastBlockFall) < gameSpeed) return
+    if (activeTetromino.color)
+    {
+        moveDown()    
+    }
     lastBlockFall = currentTime
-    
-
 }
 
-window.requestAnimationFrame(main)
-
-// initialize tetromino 
+window.addEventListener('load', () =>
+{
+    spawn()
+    window.requestAnimationFrame(main)
+})
 
 // choose new random tetromino
 
@@ -36,27 +45,45 @@ function newActiveTetromino()
 
 function drawActive()
 {
-    document.getElementById('game-board').innerHTML = ''
+    document.querySelectorAll('.active').forEach(element=>
+    {
+        element.remove()
+    })
     const rotation = activeTetromino.current_rotation
     const coordinates = activeTetromino[rotation]
     const color = activeTetromino.color
     coordinates.forEach(coordinate=>
     {
         const element = document.createElement('div')
-        element.classList.add(color)
+        element.classList.add(color, "active")
         element.style.gridRowStart = coordinate.y
         element.style.gridColumnStart = coordinate.x
         document.getElementById('game-board').appendChild(element)
     })
 }
 
-function drawBlocks()
+export function drawBlocks()
 {
-
+    const gameBoard = document.getElementById('game-board')
+    gameBoard.innerHTML = ''
+    const fragment = document.createDocumentFragment()
+    for (let i = 0; i < 20; i++)
+    {
+        for (let j = 0; j < 10; j++)
+        {
+            if (blocks[i][j].isOccupied === true)
+            {
+                const element = document.createElement('div')
+                element.style.gridRowStart = i + 1
+                element.style.gridColumnStart = j + 1
+                element.classList.add(blocks[i][j].color)
+                fragment.appendChild(element)
+            }
+        }
+    }
+    gameBoard.appendChild(fragment)
+    
 }
-
-// MOVEMENT
-
 
 // check if new tetromino placement is legal
 
@@ -68,11 +95,37 @@ function check(coordinates)
     })
 }
 
+// spawn new tetromino
 
+export function spawn()
+{
+    newActiveTetromino()
+    if (check(activeTetromino[0]))
+    {
+        drawActive()
+    }
+    else
+    {
+        gameOver()
+    }
+}
+
+
+// game over
+
+function gameOver()
+{
+    if (confirm("Game over. Do you want to play again?"))
+    {
+        window.location = "/"
+    }
+}
+
+// MOVEMENT
 
 // move active tetromino down by one
 
-function moveDown()
+function moveDown(gravity = true)
 {
     const rotation = activeTetromino.current_rotation
     let coordinates = activeTetromino[rotation]
@@ -93,6 +146,10 @@ function moveDown()
             }
         }
         drawActive()
+        if (!gravity)
+        {
+            intervalID = setInterval(moveDown, 125)
+        }
     }
     else
     {
@@ -127,6 +184,7 @@ function moveLeft()
             }
         }
         drawActive()
+        intervalID = setInterval(moveLeft, 125)
     }
 
 }
@@ -154,6 +212,7 @@ function moveRight()
             }
         }
         drawActive()
+        intervalID = setInterval(moveRight, 125)
     }
 
 }
@@ -311,6 +370,69 @@ function counterClockwise()
             return
     }
 }
+
+// hard drop
+
+function hardDrop()
+{
+    let coordinates = activeTetromino[activeTetromino.current_rotation]
+    while (true)
+    {
+        let newCoordinates = coordinates
+        newCoordinates.forEach(coordinate=>
+        {
+            coordinate.y -= 1
+        })
+        if (check(newCoordinates))
+        {
+            coordinates = newCoordinates
+            continue
+        }
+        else
+        {
+            break
+        }
+    }
+    addBlocks(coordinates, activeTetromino.color)
+}
+
+// INPUT
+
+window.addEventListener('keydown', e =>
+{
+    switch(e.key)
+    {
+        case " ":
+            hardDrop()
+            break
+
+        case "ArrowUp":
+        case "x":
+            clockwise()
+            break
+
+        case "Control":
+        case "z":
+            counterClockwise()
+            break
+        
+        case "ArrowLeft":
+            intervalID = setTimeout(moveLeft, 250)
+            break
+
+        case "ArrowRight":
+            intervalID = setTimeout(moveRight, 250)
+
+        case "ArrowDown":
+            intervalID = setTimeout(moveDown, 250, false)
+            break
+    }
+})
+
+window.addEventListener('keyup', () =>
+{
+    clearInterval(intervalID)
+})
 
  
 /* game update logic

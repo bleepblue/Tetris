@@ -1,4 +1,10 @@
+import { linesCleared } from "./score.js"
+import { spawn } from "./game.js"
+import { drawBlocks } from "./game.js"
+import { activeTetromino } from "./game.js"
+
 export let blocks = []
+let Rows = []
 
 // create 2D array of game board with object for each square
 
@@ -13,10 +19,24 @@ for (let i = 0; i < 20; i++)
 
 // add tetromino to blocks
 
-export function addBlocks ()
+export function addBlocks (coordinates, color)
 {
-    //TODO
-    console.log("silly boy")
+    activeTetromino = {}
+    coordinates.forEach(coordinate=>
+    {
+        // add blocks to data structure
+        blocks[coordinate.y - 1][coordinate.x - 1].isOccupied = true
+        blocks[coordinate.y - 1][coordinate.x - 1].color = color
+
+        // draw new blocks
+        const element = document.createElement('div')
+        const gameBoard = document.getElementById('game-board')
+        element.style.gridRowStart = coordinate.y
+        element.style.gridColumnStart = coordinate.x
+        element.classList.add(color)
+        gameBoard.appendChild(element)
+    })
+
 }
 
 //  check if the added blocks complete any lines
@@ -39,8 +59,13 @@ function checkLineCompletion ()
         
         rows.push(i)
     }
-
-    return rows
+    Rows = rows
+    if (rows.length > 0)
+    {
+        linesCleared(rows)
+        const deleteList = getLines(rows)
+        flash(deleteList)
+    }
 }
 
 // get DOM reference to lines to be deleted
@@ -83,6 +108,8 @@ function flash (deleteList)
         if (count === 3)
         {
             clearInterval(intervalID)
+            deleteBlocks(Rows)
+            gravity(Rows)
         }
     }, 
     300)
@@ -127,6 +154,8 @@ function gravity (rows)
             }
         }
     }
+    drawBlocks()
+    spawn()
 }
 
 
