@@ -1,12 +1,17 @@
 import { linesCleared } from "./score.js"
 import { spawn } from "./game.js"
 import { drawBlocks } from "./game.js"
+import { activeBlockFunc } from "./game.js"
 import { activeTetromino } from "./game.js"
 
 export let blocks = []
 let Rows = []
 
-// create 2D array of game board with object for each square
+// create 2D array of game board with object for each square.
+
+// blocks are 0-indexed!!! they are always 1 behind CSS grid coordinates.
+
+// first array is Y values; second array is X values.
 
 for (let i = 0; i < 20; i++)
 {
@@ -19,23 +24,29 @@ for (let i = 0; i < 20; i++)
 
 // add tetromino to blocks
 
-export function addBlocks (coordinates, color)
+export function addBlocks ()
 {
-    activeTetromino = {}
-    coordinates.forEach(coordinate=>
+    
+    activeBlockFunc()
+    activeTetromino[activeTetromino.current_rotation].forEach(coordinate=>
     {
         // add blocks to data structure
         blocks[coordinate.y - 1][coordinate.x - 1].isOccupied = true
-        blocks[coordinate.y - 1][coordinate.x - 1].color = color
+        blocks[coordinate.y - 1][coordinate.x - 1].color = activeTetromino.color
 
         // draw new blocks
+        document.querySelectorAll('.active').forEach(element=>
+            {
+                element.remove()
+            })
         const element = document.createElement('div')
         const gameBoard = document.getElementById('game-board')
         element.style.gridRowStart = coordinate.y
         element.style.gridColumnStart = coordinate.x
-        element.classList.add(color)
-        gameBoard.appendChild(element)
+        element.classList.add(activeTetromino.color)
+        gameBoard.appendChild(element) 
     })
+    checkLineCompletion()
 
 }
 
@@ -50,7 +61,7 @@ function checkLineCompletion ()
         (
                 blocks[i].some(element => 
                     {
-                        element.isOccupied === false
+                        return element.isOccupied === false
                     })
         )
         {
@@ -63,10 +74,20 @@ function checkLineCompletion ()
     if (rows.length > 0)
     {
         linesCleared(rows)
-        const deleteList = getLines(rows)
-        flash(deleteList)
+        // const deleteList = getLines(rows)
+        // flash(deleteList)
+        deleteBlocks(Rows)
+        gravity(Rows)
+    }
+    else
+    {
+        spawn()
     }
 }
+
+/*
+
+// REMEMBER HERE THAT ALL REFERENCESTO GRID MUST BE BLOCKS PLUS ONE
 
 // get DOM reference to lines to be deleted
 
@@ -114,6 +135,8 @@ function flash (deleteList)
     }, 
     300)
 }
+*/
+
 
 //delete blocks
 
@@ -129,6 +152,9 @@ function deleteBlocks(rows)
 }
 
 // move all blocks down
+
+// FIRST OF ALL - THIS SEEMS INEFICCIENT - PERHPAS I COULD TURN IT ON ITS HEAD AND SIMPLY CHECK EVERY BLOCK IF THERE'S SPACE BELOW IT
+// MORE IMPORTANTLY - IT DOESN'T ACTUALLY WORK. 
 
 function gravity (rows)
 {

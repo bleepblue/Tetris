@@ -10,34 +10,142 @@ import { gameSpeed } from "./score.js"
 //clean up code (ie move movement/input to separate module)
 //aesthetic features (including score counter and music)
 //pause
+// must change the order when blocks are added and when the the active block disappears - there is too great of a gap with the hard drop
+// need to unfuck the line completion
 
 let lastBlockFall = 0
-export let activeTetromino = {}
-let intervalID
+export let activeTetromino
+let activeBlock = false
+let time
+/* let intervalID */
 
 function main(currentTime) 
 {
     window.requestAnimationFrame(main)
-    if ((currentTime - lastBlockFall) < gameSpeed) return
-    if (activeTetromino.color)
-    {
-        moveDown()    
-    }
+    time = currentTime
+    if ((time - lastBlockFall) < gameSpeed) return
+    moveDown()    
     lastBlockFall = currentTime
+}
+
+export function activeBlockFunc()
+{
+    if(activeBlock)
+        {
+            activeBlock = false
+        }
+    else
+        {
+            activeBlock = true
+        }
 }
 
 window.addEventListener('load', () =>
 {
     spawn()
-    window.requestAnimationFrame(main)
+
+    setTimeout(window.requestAnimationFrame(main), 2000)
 })
 
+// spawn new tetromino
+
+export function spawn()
+{
+    newActiveTetromino()
+    if (check("new"))
+    {
+        activeBlock = true
+        drawActive()
+    }
+    else
+    {
+        gameOver()
+    }
+}
+
 // choose new random tetromino
+
+// reference to tetromino in tetrominoes.js is stored in activeTetromino
 
 function newActiveTetromino()
 {
     const num = Math.floor(Math.random() * 7 )
-    activeTetromino = { ...tetrominoes[num]}
+    activeTetromino = tetrominoes[num]
+    
+    // reset all positional values to their original values
+    for (let key in activeTetromino)
+        {
+            key = parseInt(key)
+            if (!isNaN(key))
+            {
+                for (let i = 0; i <= 3; i++)
+                    {
+                        activeTetromino[key][i].x = activeTetromino["spawn"][key][i].x
+                        activeTetromino[key][i].y = activeTetromino["spawn"][key][i].y
+                    }
+            }
+        }
+}
+
+// game over
+
+function gameOver()
+{
+    if (confirm("Game over. Do you want to play again?"))
+    {
+        window.location.assign('/')
+    }
+}
+
+// check new tetromino position is free
+
+function check(direction)
+{
+    switch (direction)
+    {
+        case "new":
+            return activeTetromino[0].every(coordinate=>{ return blocks[coordinate.y - 1][coordinate.x - 1].isOccupied === false }) 
+
+        case "down":
+            return activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
+                if (blocks[coordinate.y] === undefined || blocks[coordinate.y][coordinate.x - 1] === undefined)
+                    {
+                        return false
+                    }
+                return blocks[coordinate.y][coordinate.x - 1].isOccupied === false
+            })
+
+        case "left":
+            return activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
+                if (blocks[coordinate.y - 1] === undefined || blocks[coordinate.y - 1][coordinate.x - 2] === undefined)
+                    {
+                        return false
+                    }
+                return blocks[coordinate.y - 1][coordinate.x - 2].isOccupied === false
+            })
+
+        case "right":
+            return activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
+                if (blocks[coordinate.y - 1] === undefined || blocks[coordinate.y - 1][coordinate.x] === undefined)
+                    {
+                        return false
+                    }
+                return blocks[coordinate.y - 1][coordinate.x].isOccupied === false
+            })
+
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            return activeTetromino[direction].every(coordinate=>{
+                if (blocks[coordinate.y - 1] === undefined || blocks[coordinate.y - 1][coordinate.x - 1] === undefined)
+                    {
+                        return false
+                    }
+                return blocks[coordinate.y - 1][coordinate.x - 1].isOccupied === false
+            })
+
+    }
 }
 
 
@@ -49,18 +157,18 @@ function drawActive()
     {
         element.remove()
     })
-    const rotation = activeTetromino.current_rotation
-    const coordinates = activeTetromino[rotation]
-    const color = activeTetromino.color
-    coordinates.forEach(coordinate=>
+
+    activeTetromino[activeTetromino.current_rotation].forEach(coordinate=>
     {
         const element = document.createElement('div')
-        element.classList.add(color, "active")
+        element.classList.add(activeTetromino.color, "active")
         element.style.gridRowStart = coordinate.y
         element.style.gridColumnStart = coordinate.x
         document.getElementById('game-board').appendChild(element)
     })
 }
+
+// draw game board after tetromino piece has fallen to ground
 
 export function drawBlocks()
 {
@@ -85,59 +193,18 @@ export function drawBlocks()
     
 }
 
-// check if new tetromino placement is legal
-
-function check(coordinates)
-{
-    return coordinates.every(coordinate=>
-    {
-        blocks[coordinate.y - 1][coordinate.x - 1].isOccupied === false
-    })
-}
-
-// spawn new tetromino
-
-export function spawn()
-{
-    newActiveTetromino()
-    if (check(activeTetromino[0]))
-    {
-        drawActive()
-    }
-    else
-    {
-        gameOver()
-    }
-}
-
-
-// game over
-
-function gameOver()
-{
-    if (confirm("Game over. Do you want to play again?"))
-    {
-        window.location = "/"
-    }
-}
-
 // MOVEMENT
 
-// move active tetromino down by one
-
-function moveDown(gravity = true)
+function moveDown()
 {
-    const rotation = activeTetromino.current_rotation
-    let coordinates = activeTetromino[rotation]
-    coordinates.forEach(coordinate=>
-        {
-            coordinate.y++
-        })
-    if (check(coordinates))
+    if (!activeBlock) return
+
+    if (check("down"))
     {
         for (let key in activeTetromino)
         {
-            if (!isNaN(parseInt(key)))
+            key = parseInt(key)
+            if (!isNaN(key))
             {
                 activeTetromino[key].forEach(coordinate=>
                 {
@@ -146,17 +213,10 @@ function moveDown(gravity = true)
             }
         }
         drawActive()
-        if (!gravity)
-        {
-            intervalID = setInterval(moveDown, 125)
-        }
     }
     else
     {
-        addBlocks(activeTetromino[rotation], activeTetromino.color)
-        newActiveTetromino()
-        drawActive()
-
+        addBlocks(activeTetromino[activeTetromino.current_rotation], activeTetromino.color)
     }
 
 }
@@ -165,17 +225,14 @@ function moveDown(gravity = true)
 
 function moveLeft()
 {
-    const rotation = activeTetromino.current_rotation
-    let coordinates = activeTetromino[rotation]
-    coordinates.forEach(coordinate=>
-        {
-            coordinate.x--
-        })
-    if (check(coordinates))
+    if (!activeBlock) return
+   
+    if (check("left"))
     {
         for (let key in activeTetromino)
         {
-            if (!isNaN(parseInt(key)))
+            key = parseInt(key)
+            if (!isNaN(key))
             {
                 activeTetromino[key].forEach(coordinate=>
                 {
@@ -184,7 +241,6 @@ function moveLeft()
             }
         }
         drawActive()
-        intervalID = setInterval(moveLeft, 125)
     }
 
 }
@@ -193,17 +249,14 @@ function moveLeft()
 
 function moveRight()
 {
-    const rotation = activeTetromino.current_rotation
-    let coordinates = activeTetromino[rotation]
-    coordinates.forEach(coordinate=>
-        {
-            coordinate.x++
-        })
-    if (check(coordinates))
+    if (!activeBlock) return
+
+    if (check("right"))
     {
         for (let key in activeTetromino)
         {
-            if (!isNaN(parseInt(key)))
+            key = parseInt(key)
+            if (!isNaN(key))
             {
                 activeTetromino[key].forEach(coordinate=>
                 {
@@ -212,7 +265,7 @@ function moveRight()
             }
         }
         drawActive()
-        intervalID = setInterval(moveRight, 125)
+   
     }
 
 }
@@ -221,76 +274,53 @@ function moveRight()
 
 function clockwise()
 {
+    if (!activeBlock) return
     switch(activeTetromino.color)
     {
         case "cyan":
-            if (activeTetromino.current_rotation === 1)
-            {
-                activeTetromino.current_rotation = 0
-            }
-            else
-            {
-                activeTetromino.current_rotation++
-            }
-            drawActive()
-            return
-        case "blue":
-            if (activeTetromino.current_rotation === 3)
-            {
-                activeTetromino.current_rotation = 0
-            }
-            else
-            {
-                activeTetromino.current_rotation++
-            }
-            drawActive()
-            return
-        case "orange":
-            if (activeTetromino.current_rotation === 1)
-            {
-                activeTetromino.current_rotation = 0
-            }
-            else
-            {
-                activeTetromino.current_rotation++
-            }
-            drawActive()
-            return
-        case "yellow":
-            return
         case "green":
-            if (activeTetromino.current_rotation === 1)
-            {
-                activeTetromino.current_rotation = 0
-            }
-            else
-            {
-                activeTetromino.current_rotation++
-            }
-            drawActive()
-            return
-        case "purple":
-            if (activeTetromino.current_rotation === 3)
-            {
-                activeTetromino.current_rotation = 0
-            }
-            else
-            {
-                activeTetromino.current_rotation++
-            }
-            drawActive()
-            return
         case "red":
             if (activeTetromino.current_rotation === 1)
             {
-                activeTetromino.current_rotation = 0
+                if (check(0))
+                {
+                    activeTetromino.current_rotation = 0
+                    drawActive()
+                }
             }
             else
             {
-                activeTetromino.current_rotation++
+                if (check(activeTetromino.current_rotation + 1))
+                {
+                    activeTetromino.current_rotation++
+                    drawActive()
+                }
             }
-            drawActive()
-            return
+            break
+
+        case "blue":
+        case "purple":
+        case "orange":
+            if (activeTetromino.current_rotation === 3)
+            {
+                if (check(0))
+                {
+                    activeTetromino.current_rotation = 0
+                    drawActive()
+                }
+            }
+            else
+            {
+                if (check(activeTetromino.current_rotation + 1))
+                {
+                    activeTetromino.current_rotation++
+                    drawActive()
+                }
+            }
+            break
+
+        case "yellow":
+            break
     }
 }
 
@@ -298,76 +328,53 @@ function clockwise()
 
 function counterClockwise()
 {
+    if (!activeBlock) return
     switch(activeTetromino.color)
     {
         case "cyan":
-            if (activeTetromino.current_rotation === 0)
-            {
-                activeTetromino.current_rotation = 1
-            }
-            else
-            {
-                activeTetromino.current_rotation--
-            }
-            drawActive()
-            return
-        case "blue":
-            if (activeTetromino.current_rotation === 0)
-            {
-                activeTetromino.current_rotation = 3
-            }
-            else
-            {
-                activeTetromino.current_rotation--
-            }
-            drawActive()
-            return
-        case "orange":
-            if (activeTetromino.current_rotation === 0)
-            {
-                activeTetromino.current_rotation = 1
-            }
-            else
-            {
-                activeTetromino.current_rotation--
-            }
-            drawActive()
-            return
-        case "yellow":
-            return
         case "green":
-            if (activeTetromino.current_rotation === 0)
-            {
-                activeTetromino.current_rotation = 1
-            }
-            else
-            {
-                activeTetromino.current_rotation--
-            }
-            drawActive()
-            return
-        case "purple":
-            if (activeTetromino.current_rotation === 0)
-            {
-                activeTetromino.current_rotation = 3
-            }
-            else
-            {
-                activeTetromino.current_rotation--
-            }
-            drawActive()
-            return
         case "red":
             if (activeTetromino.current_rotation === 0)
             {
+                if (check(1))
+                {
                 activeTetromino.current_rotation = 1
+                drawActive()
+                }
             }
             else
             {
+                if (activeTetromino.current_rotation - 1)
+                {
                 activeTetromino.current_rotation--
+                drawActive()
+                }
             }
-            drawActive()
-            return
+            break
+
+        case "blue":
+        case "purple":
+        case "orange":
+            if (activeTetromino.current_rotation === 0)
+            {
+                if (check(3))
+                {
+                activeTetromino.current_rotation = 3
+                drawActive()
+                }
+            }
+            else
+            {
+                if (activeTetromino.current_rotation - 1)
+                {
+                activeTetromino.current_rotation--
+                drawActive()
+                }
+            }
+            break
+
+        case "yellow":
+            break
     }
 }
 
@@ -375,25 +382,33 @@ function counterClockwise()
 
 function hardDrop()
 {
-    let coordinates = activeTetromino[activeTetromino.current_rotation]
+    let drop = 1
     while (true)
-    {
-        let newCoordinates = coordinates
-        newCoordinates.forEach(coordinate=>
         {
-            coordinate.y -= 1
+            if ( 
+                    activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
+                    if (blocks[coordinate.y - 1 + drop] === undefined || blocks[coordinate.y - 1 + drop][coordinate.x - 1] === undefined)
+                        {
+                            return false
+                        }
+                    return blocks[coordinate.y - 1 + drop][coordinate.x - 1].isOccupied === false
+                    })
+                )
+                {
+                    drop++
+                    continue
+                }
+            else
+                {
+                    drop--
+                    break
+                }
+        }
+        activeTetromino[activeTetromino.current_rotation].forEach(coordinate=>{
+            coordinate.y += drop
         })
-        if (check(newCoordinates))
-        {
-            coordinates = newCoordinates
-            continue
-        }
-        else
-        {
-            break
-        }
-    }
-    addBlocks(coordinates, activeTetromino.color)
+        drawBlocks()
+
 }
 
 // INPUT
@@ -417,112 +432,17 @@ window.addEventListener('keydown', e =>
             break
         
         case "ArrowLeft":
-            intervalID = setTimeout(moveLeft, 250)
+            moveLeft()
             break
 
         case "ArrowRight":
-            intervalID = setTimeout(moveRight, 250)
+           moveRight()
+            break
 
         case "ArrowDown":
-            intervalID = setTimeout(moveDown, 250, false)
+            moveDown()
+            lastBlockFall = time
             break
     }
 })
-
-window.addEventListener('keyup', () =>
-{
-    clearInterval(intervalID)
-})
-
- 
-/* game update logic
-
-game redraws at regular intervals (for gravity) OR after input (that is not blocked)
-also redraws after line deletion in blocks module
-only active piece is redrawn
-
-*/
-
-/* 
-   obviously will have to check that move is possible first.
-   copy object from module into new 'active' object in this module.
-   the function that checks if the move is possible calls the 'add block' function in blocks module if 
-   gravity or hard drop or soft drop caused the active block to be blocked by the blocks. 
-   then the active block is deleted and a new block is spawned.
-*/
-
-/* the check if move legal function can simply scan blocks to see if the desired co-ordinates are occupied or not (or if the
-co ordinates do not exist - can work by simply checking if isOccupied : false is true) */
-
-
-/*
-game logic
-
-pieces fall at prescribed gamespeed
-appear at top
-one press moves it, hold down key makes it move faster
-distinguish between static and moving
-when it becomes static - 
-    check for line clear
-    if no line clear, check for touch top - game over
-every time it moves down, check for touch 
-
-
-object with all static tetrominoes in it
-
-
-
-
-    
-    input(keydown) triggers function
-        function :
-            settimeout for move (change tetromino co-ordinates and redraw)
-            setinterval for fast move (change tetromino co-ordinates and redraw)
-    input(keyup) triggers function
-        function:
-            cleartimeout for fastmove
-
-    input rotate is timeout (change tetromino co-ordinates and redraw)
-
-    input soft drop is setinterval AND cancels block fall (triggers boolean that block fall looks for)
-    input softdrop keyup clearinterval
-
-    input hard drop just straight up changes the tetromino co-ordinates and redraws
-
-
-
-
-    separate module for tetromino positioning
-
-    object for each tetromino
-        each object contains relative positions of each square of the tetromino
-            bottom-most, left-most, right-most, and top-most square(s) is marked in every case
-            
-
-        movement module    
-            every move check new position to see if legal:
-        if violates sides, bottom or top, does not allow move
-        if pieces blockiing bottom, block becomes static. 
-          
-        
-    module containing 2-dimensional array, filled with objects.
-        each objects contains two keys:
-            isOccupied(boolean)
-            color(string)
-    nested for loops to create the object
-    when object is added - loop through rows to check if every space in row isOccupied. if true:
-        flashing animation
-        change all blocks in row to isOcuupied: false (loop through row)
-        GRAVITY FUNCTION:
-            store number of lines deleted in variable
-            nested for loop - outer loop number of rows above top line being deleted
-                inner loop 10 (for width of game board)
-                    check if isOccupied, and if it is, access object in row i minus {number of lines deleted variable}, column j, and set it to isOccupied: true, color: {color of current object}, and set isOccupied of current object to false.
-
-    
-    score module. also includes level . work this out later
-    
-
-    */
-
 

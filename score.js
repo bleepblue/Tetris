@@ -1,6 +1,6 @@
 let level = 1
 let lines = 0
-export let gameSpeed = 500
+export let gameSpeed = 800
 export function linesCleared(rows)
 {
     switch(rows.length)
@@ -22,7 +22,7 @@ export function linesCleared(rows)
     {
         level++
         lines -= 10
-        gameSpeed *= 1.1
+        gameSpeed *= 0.9
     }
 }
 
