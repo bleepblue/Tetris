@@ -216,7 +216,7 @@ function moveDown()
     }
     else
     {
-        addBlocks(activeTetromino[activeTetromino.current_rotation], activeTetromino.color)
+        addBlocks()
     }
 
 }
@@ -407,7 +407,8 @@ function hardDrop()
         activeTetromino[activeTetromino.current_rotation].forEach(coordinate=>{
             coordinate.y += drop
         })
-        drawBlocks()
+        drawActive()
+        addBlocks()
 
 }
 
