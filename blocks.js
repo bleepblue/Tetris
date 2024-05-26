@@ -144,9 +144,9 @@ function deleteBlocks(rows)
 {
     rows.forEach(row =>
     {
-        blocks[row].forEach(element =>
+        blocks[row].forEach(block =>
         {
-            element.isOccupied = false
+            block.isOccupied = false
         })
     })
 }
@@ -154,29 +154,21 @@ function deleteBlocks(rows)
 // move all blocks down
 
 // FIRST OF ALL - THIS SEEMS INEFICCIENT - PERHPAS I COULD TURN IT ON ITS HEAD AND SIMPLY CHECK EVERY BLOCK IF THERE'S SPACE BELOW IT
-// MORE IMPORTANTLY - IT DOESN'T ACTUALLY WORK. 
+// MYSTERIOUS GLITCH EXISTS
 
 function gravity (rows)
 {
     const lines = rows.length
-    let topRow = rows[0]
-    rows.forEach(row => 
-        {
-            if (row < topRow)
-            {
-                topRow = row
-            }
-        })
-    for (let i = topRow - 1; i >= 0; i--)
+    rows.sort((a, b)=>a - b)
+    for (let i = rows[0] - 1; i >= 0; i--)
     {
         for (let j = 0; j <= 9; j++)
         {
             if(blocks[i][j].isOccupied === true)
             {
             blocks[i][j].isOccupied = false
-            const color = blocks[i][j].color
             blocks[i + lines][j].isOccupied = true
-            blocks[i + lines][j].color = color
+            blocks[i + lines][j].color = blocks[i][j].color
             }
         }
     }
