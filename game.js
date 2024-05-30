@@ -10,8 +10,6 @@ import { gameSpeed } from "./score.js"
 //clean up code (ie move movement/input to separate module)
 //aesthetic features (including score counter and music)
 //pause
-// must change the order when blocks are added and when the the active block disappears - there is too great of a gap with the hard drop
-// need to unfuck the line completion
 
 let lastBlockFall = 0
 export let activeTetromino

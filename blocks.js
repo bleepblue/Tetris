@@ -74,10 +74,9 @@ function checkLineCompletion ()
     if (rows.length > 0)
     {
         linesCleared(rows)
-        // const deleteList = getLines(rows)
-        // flash(deleteList)
-        deleteBlocks(Rows)
-        gravity(Rows)
+        const deleteList = getLines(rows)
+        flash(deleteList)
+        
     }
     else
     {
@@ -85,9 +84,8 @@ function checkLineCompletion ()
     }
 }
 
-/*
 
-// REMEMBER HERE THAT ALL REFERENCESTO GRID MUST BE BLOCKS PLUS ONE
+// REMEMBER HERE THAT ALL REFERENCES TO GRID MUST BE BLOCKS PLUS ONE
 
 // get DOM reference to lines to be deleted
 
@@ -98,7 +96,7 @@ function getLines(rows)
     let deleteList = []
     rows.forEach(row => {
         allBlocks.forEach(element => {
-            if (parseInt(element.style.gridRowStart) == row)
+            if (parseInt(element.style.gridRowStart) == row + 1)
             {
                 deleteList.push(element)
             }
@@ -106,6 +104,8 @@ function getLines(rows)
     });
     return deleteList
 }
+
+
 
 // flash lines to be deleted
 
@@ -115,27 +115,31 @@ function flash (deleteList)
 
     const intervalID = setInterval(() => 
     {
-        deleteList.forEach(item=>{
-            item.classList.add('white')
-        })
-
-        setTimeout(() => 
+        if (count === 3)
+            {
+                clearInterval(intervalID)
+                deleteBlocks(Rows)
+                gravity(Rows)
+            }
+        else
         {
             deleteList.forEach(item=>{
-                item.classList.remove('white')
+                item.style.backgroundColor='white'
             })
-        }, 
-        150)
-        if (count === 3)
-        {
-            clearInterval(intervalID)
-            deleteBlocks(Rows)
-            gravity(Rows)
+
+            setTimeout(() => 
+            {
+                deleteList.forEach(item=>{
+                    item.style.backgroundColor='black'
+                })
+            }, 
+            80)
+            count++
         }
     }, 
-    300)
+    160)
 }
-*/
+
 
 
 //delete blocks
@@ -153,15 +157,20 @@ function deleteBlocks(rows)
 
 // move all blocks down
 
-// FIRST OF ALL - THIS SEEMS INEFICCIENT - PERHPAS I COULD TURN IT ON ITS HEAD AND SIMPLY CHECK EVERY BLOCK IF THERE'S SPACE BELOW IT
-// MYSTERIOUS GLITCH EXISTS
-
 function gravity (rows)
 {
-    const lines = rows.length
-    rows.sort((a, b)=>a - b)
-    for (let i = rows[0] - 1; i >= 0; i--)
+    let lines = 1
+    const bottom = Math.max.apply(null, rows)
+    for (let i = Math.max.apply(null, rows) - 1; i >= 0; i--)
     {
+        if (lines < rows.length)
+            {
+                if (rows.includes(i))
+                    {
+                        lines++
+                        continue
+                    }
+            }
         for (let j = 0; j <= 9; j++)
         {
             if(blocks[i][j].isOccupied === true)
@@ -175,19 +184,3 @@ function gravity (rows)
     drawBlocks()
     spawn()
 }
-
-
-
-/* module containing 2-dimensional array, filled with objects.
-        each objects contains two keys:
-            isOccupied(boolean)
-            color(string)
-    nested for loops to create the object
-    when object is added - loop through rows to check if every space in row isOccupied. if true:
-        flashing animation
-        change all blocks in row to isOcuupied: false (loop through row)
-        GRAVITY FUNCTION:
-            store number of lines deleted in variable
-            nested for loop - outer loop number of rows above top line being deleted
-                inner loop 10 (for width of game board)
-                    check if isOccupied, and if it is, access object in row i minus {number of lines deleted variable}, column j, and set it to isOccupied: true, color: {color of current object}, and set isOccupied of current object to false.*/
