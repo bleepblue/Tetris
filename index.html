@@ -8,7 +8,26 @@
     <script src="game.js" type="module" defer></script>
 </head>
 <body>
+    <div class="blank"></div>
     <div id="game-board"></div>
+    <div id="pause" class="menu">
+        <div id="continue" class="menu-option">continue</div>
+        <div id="new-game" class="menu-option">new game</div>
+        <div id="options-button" class="menu-option">options</div>
+    </div>
+    <div id="options" class="menu">
+        <div id="back" class="menu-option">back</div>
+        <div id="music" class="menu-option">music <audio src="tetrisTheme.mp3" loop></audio><span id="music-on">on</span>/<span id="music-off">off</span></div>
+        <div id="level-select" class="menu-option"> <div class="change-level" id="level-up">&lt;</div><div>level <span id="level-counter">1</span> </div><div class="change-level" id="level-down">&gt;</div></div>
+    </div>
+    <div class="blank">
+        <div id="info">
+            <div class="info-item" id="next-piece"></div>
+            <div class="info-item">score: <span id="score">0</span></div>
+            <div class="info-item">level: <span id="level">1</span></div>
+            <div class="info-item">controls: the usual</div>
+        </div>
+    </div>
     
 </body>
 </html>

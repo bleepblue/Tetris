@@ -1,26 +1,40 @@
 
 import { tetrominoes, I_shape, L_shape, J_shape, O_shape, S_shape, Z_shape, T_shape } from "./tetrominoes.js"
-import { blocks } from "./blocks.js"
+import { blocks, deleteBlocks } from "./blocks.js"
 import { addBlocks } from "./blocks.js"
-import { gameSpeed } from "./score.js"
+import { gameSpeed, changeLevel, changeGameSpeed } from "./score.js"
 
 // TODO: 
 
-
-//clean up code (ie move movement/input to separate module)
-//aesthetic features (including score counter and music)
-//pause
+//today: hi score, level setter. game over screen
+//hi score stored in cookie. flashes when new high score acheived. 
+// level setter - up level, "level", down level - number across from word
+// game over screen = words, game over, below, score. below that, play again button. takes you to start screen
+//tomorrow:aesthetics. make look pretty. clean up code (ie move movement/input to separate module)
 
 let lastBlockFall = 0
 export let activeTetromino
+let nextTetromino = null
 let activeBlock = false
 let time
-/* let intervalID */
+let animationID
+let gameStarted = false
+let optionsMenuSelected = false
+let musicOn = false
+let newGameLevel = 1
+document.getElementById("new-game").addEventListener('click', startGame);
+document.getElementById("continue").addEventListener('click', continueGame);
+document.getElementById("options-button").addEventListener('click', optionsMenu);
+document.getElementById("back").addEventListener('click', optionsMenu);
+document.getElementById("music").addEventListener('click', toggleMusic);
+document.getElementById("level-up").addEventListener('mousedown', levelOption);
+document.getElementById("level-down").addEventListener('mousedown', levelOption);
 
 function main(currentTime) 
 {
-    window.requestAnimationFrame(main)
+    animationID = window.requestAnimationFrame(main)
     time = currentTime
+    if (lastBlockFall === 0) lastBlockFall = time
     if ((time - lastBlockFall) < gameSpeed) return
     moveDown()    
     lastBlockFall = currentTime
@@ -38,13 +52,6 @@ export function activeBlockFunc()
         }
 }
 
-window.addEventListener('load', () =>
-{
-    spawn()
-
-    setTimeout(window.requestAnimationFrame(main), 2000)
-})
-
 // spawn new tetromino
 
 export function spawn()
@@ -53,6 +60,7 @@ export function spawn()
     if (check("new"))
     {
         activeBlock = true
+        drawNextTetromino()
         drawActive()
     }
     else
@@ -67,8 +75,18 @@ export function spawn()
 
 function newActiveTetromino()
 {
-    const num = Math.floor(Math.random() * 7 )
-    activeTetromino = tetrominoes[num]
+    let num = Math.floor(Math.random() * 7 )
+    if(!nextTetromino)
+        {
+            nextTetromino = tetrominoes[num]
+            num = Math.floor(Math.random() * 7 )
+            activeTetromino = tetrominoes[num]
+        }
+    else
+        {
+            activeTetromino = nextTetromino
+            nextTetromino = tetrominoes[num]
+        }
     
     // reset all positional values to their original values
     for (let key in activeTetromino)
@@ -85,6 +103,62 @@ function newActiveTetromino()
         }
 }
 
+function drawNextTetromino()
+{
+    document.getElementById("next-piece").innerHTML = "";
+    const width = document.getElementById("game-board").scrollWidth / 10;
+    const container = document.createElement("div");
+    container.style.display="grid";
+    switch (nextTetromino.color)
+        {
+            case "cyan":
+                container.style.gridTemplateColumns = width + "px" + " " + width + "px" + " " + width + "px" + " " + width + "px";
+                container.style.gridTemplateRows = width + "px";
+                nextTetromino["spawn"][0].forEach(coordinate=>
+                    {
+                        const element = document.createElement('div')
+                        element.style.gridRowStart = coordinate.y
+                        element.style.gridColumnStart = coordinate.x - 3
+                        element.classList.add(nextTetromino.color)
+                        container.appendChild(element)
+                    })
+                document.getElementById("next-piece").appendChild(container)
+                break
+
+            case "yellow":
+                container.style.gridTemplateColumns = width + "px" + " " + width + "px";
+                container.style.gridTemplateRows = width + "px" + " " + width + "px";
+                nextTetromino["spawn"][0].forEach(coordinate=>
+                    {
+                        const element = document.createElement('div')
+                        element.style.gridRowStart = coordinate.y
+                        element.style.gridColumnStart = coordinate.x - 4
+                        element.classList.add(nextTetromino.color)
+                        container.appendChild(element)
+                    })
+                document.getElementById("next-piece").appendChild(container)
+                break
+
+            case "blue":
+            case "orange":
+            case "green":
+            case "purple":
+            case "red":
+                container.style.gridTemplateColumns = width + "px" + " " + width + "px" + " " + width + "px";
+                container.style.gridTemplateRows = width + "px" + " " + width + "px";
+                nextTetromino["spawn"][0].forEach(coordinate=>
+                    {
+                        const element = document.createElement('div')
+                        element.style.gridRowStart = coordinate.y
+                        element.style.gridColumnStart = coordinate.x - 3
+                        element.classList.add(nextTetromino.color)
+                        container.appendChild(element)
+                    })
+                document.getElementById("next-piece").appendChild(container)
+                break
+        }
+}
+
 // game over
 
 function gameOver()
@@ -93,6 +167,124 @@ function gameOver()
     {
         window.location.assign('/')
     }
+}
+
+// pause game
+
+function pauseMenu()
+{
+    document.getElementById("pause").style.display = "flex";
+    window.cancelAnimationFrame(animationID);
+}
+
+function optionsMenu()
+{
+    if(!optionsMenuSelected)
+        {
+            optionsMenuSelected = true;
+            document.getElementById("pause").style.display = "none";
+            document.getElementById("options").style.display = "flex";
+        }
+    else
+        {
+            optionsMenuSelected = false;
+            document.getElementById("options").style.display = "none";
+            document.getElementById("pause").style.display = "flex";
+        }
+    
+}
+
+function toggleMusic()
+{
+    if(!musicOn)
+        {
+            musicOn = true;
+            document.getElementById("music-off").style.fontSize = "20px";
+            document.getElementById("music-on").style.fontSize = "30px";
+            document.querySelector("audio").play();
+        }
+    else
+        {
+            musicOn = false;
+            document.getElementById("music-off").style.fontSize = "30px";
+            document.getElementById("music-on").style.fontSize = "20px";
+            document.querySelector("audio").pause();
+        }
+}
+
+function levelOption(event)
+{
+  //  event.target.style.fontSize="25px";
+ //   event.target.addEventListener('mouseup', levelUnclick(event.target));
+ //   event.target.addEventListener('mouseleave', levelUnclick(event.target));
+    if(event.target.id === "level-up") 
+        { 
+         //   event.target.style.marginBottom="6px";
+            if(newGameLevel < 9)
+                {
+                    newGameLevel++;
+                    document.getElementById("level-counter").innerHTML = newGameLevel;
+                }
+        }
+    else if (event.target.id === "level-down")
+        {
+            if(newGameLevel > 1)
+                {
+                    newGameLevel--;
+                    document.getElementById("level-counter").innerHTML = newGameLevel;
+                }
+        }
+
+}
+
+function levelUnclick(element)
+{
+    element.style.fontSize="30px";
+    if(element.id === "level-up") { element.style.marginBottom="0px" };
+    element.removeEventListener('mouseup', levelUnclick);
+    element.removeEventListener('mouseleave', levelUnclick);
+}
+
+// start game
+
+function startGame()
+{
+    if(gameStarted)
+        {
+            deleteBlocks([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]);
+            drawBlocks();
+            document.getElementById("pause").style.display = "none";
+            lastBlockFall = 0;
+            nextTetromino = null;
+            if (newGameLevel != 1)
+                {
+                    changeLevel(newGameLevel);
+                    document.getElementById("level").innerHTML = newGameLevel;
+                    changeGameSpeed(800 * (0.9 ** newGameLevel));
+                }
+            spawn();
+            animationID = window.requestAnimationFrame(main);
+            return
+        }
+    document.getElementById("pause").style.display = "none";
+    document.getElementById("continue").style.display = "block";
+    if (newGameLevel != 1)
+        {
+            changeLevel(newGameLevel);
+            document.getElementById("level").innerHTML = newGameLevel;
+            changeGameSpeed(800 * (0.9 ** newGameLevel));
+        }
+    spawn();
+    gameStarted = true;
+    animationID = window.requestAnimationFrame(main);
+}
+
+// continue game
+
+function continueGame()
+{
+    document.getElementById("pause").style.display = "none";
+    animationID = window.requestAnimationFrame(main);
 }
 
 // check new tetromino position is free
@@ -340,7 +532,7 @@ function counterClockwise()
                 drawActive()
                 }
             }
-            else
+            elsecheck
             {
                 if (activeTetromino.current_rotation - 1)
                 {
@@ -442,6 +634,10 @@ window.addEventListener('keydown', e =>
             moveDown()
             lastBlockFall = time
             break
+        
+        case "p":
+        case "Escape":
+            pauseMenu()
     }
 })
 

@@ -144,7 +144,7 @@ function flash (deleteList)
 
 //delete blocks
 
-function deleteBlocks(rows)
+export function deleteBlocks(rows)
 {
     rows.forEach(row =>
     {
