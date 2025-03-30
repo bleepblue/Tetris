@@ -8,8 +8,8 @@ export let I_shape =
     0: [{x:4,y:1},{x:5,y:1},{x:6,y:1},{x:7,y:1}],
     1: [{x:5,y:0},{x:5,y:1},{x:5,y:2},{x:5,y:3}],
     spawn:  {
-                0: [{x:4,y:1},{x:5,y:1},{x:6,y:1},{x:7,y:1}],
-                1: [{x:5,y:0},{x:5,y:1},{x:5,y:2},{x:5,y:3}]
+                0: [{x:4,y:2},{x:5,y:2},{x:6,y:2},{x:7,y:2}],
+                1: [{x:5,y:1},{x:5,y:2},{x:5,y:3},{x:5,y:4}]
             }
 }
 
@@ -94,5 +94,7 @@ export let Z_shape =
                 1: [{x:5,y:1},{x:5,y:2},{x:4,y:2},{x:4,y:3}],
             }
 }
+
+export let ghost_piece = [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}]
 
 export const tetrominoes = [I_shape, J_shape, L_shape, O_shape, S_shape, T_shape, Z_shape]

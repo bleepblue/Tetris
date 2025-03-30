@@ -35,6 +35,14 @@ export function addBlocks ()
         blocks[coordinate.y - 1][coordinate.x - 1].color = activeTetromino.color
 
         // draw new blocks
+        document.querySelectorAll(".ghost").forEach(node=>
+            {
+                node.remove()
+            })
+        document.querySelectorAll(".ghost-overlap").forEach(node=>
+            {
+                node.remove()
+            })
         document.querySelectorAll('.active').forEach(element=>
             {
                 element.remove()
@@ -44,8 +52,10 @@ export function addBlocks ()
         element.style.gridRowStart = coordinate.y
         element.style.gridColumnStart = coordinate.x
         element.classList.add(activeTetromino.color)
+        element.classList.add("block")
         gameBoard.appendChild(element) 
     })
+    activeTetromino.current_rotation = 0
     checkLineCompletion()
 
 }
@@ -92,7 +102,7 @@ function checkLineCompletion ()
 function getLines(rows)
 {
 
-    const allBlocks = document.querySelector('#game-board').childNodes
+    const allBlocks = document.querySelectorAll('.block')
     let deleteList = []
     rows.forEach(row => {
         allBlocks.forEach(element => {

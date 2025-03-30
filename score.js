@@ -48,6 +48,12 @@ export function changeGameSpeed(newSpeed)
     gameSpeed = newSpeed
 }
 
+export function resetScore()
+{
+    score = 0;
+    document.getElementById("score").innerHTML=0;
+}
+
 
 
 
