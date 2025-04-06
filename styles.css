@@ -2,7 +2,7 @@ body
 {
     display: flex;
     justify-content: center;
-    background-color: rgb(45, 45, 45);
+    background-color: rgb(20, 20, 20);
     margin: 0;
 }
 
@@ -185,7 +185,7 @@ body
 
 #hold
 {
-    margin-bottom: 180px;
+    margin-bottom: 160px;
 }
 
 #next-piece
@@ -212,7 +212,13 @@ body
     padding: 28px 0;
 }
 
-#music-off, #ghost-on
+#background-select
+{
+    width: 190px;
+    padding: 28px 0;
+}
+
+#music-off, #ghost-on, #background-on
 {
     font-size:30px;
 }
@@ -328,3 +334,90 @@ audio
     z-index: 1;
 }
 
+.tail
+{
+    background-image: linear-gradient(to top, rgb(150, 150, 150), rgba(150, 150, 150, 0));
+    flex-grow: 1;
+    filter: blur(10px); 
+    position: relative;
+    opacity: 0.15;
+}
+
+@keyframes backgroundBlockFall4 {
+    from {
+        transform: translateY(0)
+    }
+    to {
+        transform: translateY(121vh)
+    }
+}
+
+@keyframes backgroundBlockFall3 {
+    from {
+        transform: translateY(0)
+    }
+    to {
+        transform: translateY(116vh)
+    }
+}
+
+@keyframes backgroundBlockFall2 {
+    from {
+        transform: translateY(0)
+    }
+    to {
+        transform: translateY(111vh)
+    }
+}
+
+
+
+@keyframes fadeOut {
+    from {
+        opacity: 1
+    }
+    to {
+        opacity: 0
+    }
+}
+
+
+
+.animation-container
+{
+    display: flex;
+    position: fixed;
+    justify-content: end;
+    flex-direction: column;
+    bottom:100vh;
+    z-index: 0;
+}
+
+.animation4Block
+{
+    animation: 3s linear backgroundBlockFall4,
+    1s linear fadeOut 3s;
+    animation-fill-mode: forwards;
+
+}
+
+.animation3Block
+{
+    animation: 3s linear backgroundBlockFall3,
+    1s linear fadeOut 3s;
+    animation-fill-mode: forwards;
+
+}
+
+.animation2Block
+{
+    animation: 3s linear backgroundBlockFall2,
+    1s linear fadeOut 3s;
+    animation-fill-mode: forwards;
+
+}
+
+@media only screen and (max-width: 100vh)
+{
+    
+}

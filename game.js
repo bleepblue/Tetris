@@ -3,144 +3,42 @@ import { tetrominoes, ghost_piece } from "./tetrominoes.js"
 import { blocks, deleteBlocks, addBlocks } from "./blocks.js"
 import { gameSpeed, changeLevel, changeGameSpeed, score, resetScore } from "./score.js"
 
-// TODO: 
-
-// add features:
-// grid lines DONE
-// ghost piece DONE
-// hold DONE
-// add option for ghost piece DONE
-// controls option on main screen DONE
-// option for customisable controls DONE
-
-// make border a lighter colour of the tetromino background - or darker
 
 
-// revert  draw nonm game tetromino - the changes are unnecessary, just add a switch statement onto background animation function
-// and transform: rotate (90deg)
-
-// sort out janky movement
-// sort out game over - should pieces spawn above field? at the very least they should appear on the screen when you die. tetris ends when you reach the top
-// add 't spins' or whatever - make it easier to spin on the edge of the board
-// in tetrominoes, the spawn coordinates don't need to be an object, they can just be an array
-
-
-// background - off white, with animation of falling tetrominoes
-// create image of tetromino pieces, with streak behind them. 
-//then create a div behind it, same width, with streak colour. this elongates - scaleY.
-// when it reaches full length of page, delete tetromino, and streak fades out. then delete.
-// this can be done with an image of the tetromino or by creating same as next/hold, positioning it above screen, bringing it down.
-// randomly choose tetromino, position, but should always be some on screen.
-// maybe each new tetromino has to be at least x distance from the last one?
-// random within parameters...
-
-// add support for smaller screens - below certain width, 
-// width of game board (and hold/next) becomes proportion of width, and the height double the width
-// below certain width, left "blank" disappears and hold gets relocated to right hand side. only after then begin shrinking 
-// also make menu items responsive, from shorter screens
+// event listener on load and and resize. check if width is less than 100vh. remove and recreate hold on the right if so. move gameboard to the far left.
+// media query for menu items, if they get fucked up make it all smaller
 
 // move code to correct modules
 // clean up code where possible...
+// is active block pointless now?
 
-    // create array of objects, consisting of properties number, container reference, tail reference, speed, and active.
-    // will need to decide how long array will be...
-    // cycle through array with every new piece created, updating references and active.
-    // doesn't matter how long array is - this just delimits number of pieces on screen at one time. 
-    // when creating new piece can check whether number is active. if not, don't create. just wait until it becomes active.
-    // one requestanimationframe which checks object for all active pieces and updates their positions according to speed.
-    // once past certain position, move tail, delete, make unactive, etc.
-    // maybe amalgamate all animations into one requestanimationframe?
-
-
-
-    // alternate between left and right.
-
-    // width divided by blockwidth. get two arrays of placements. 
-
-    // width / blockwidth * 2 - math.floor - this is the array length. first array item is 0. add blockwidth each time.
-    // for calculating placement - 
-    // 2nd array created for recent placements.
-    // variable for last placement.
-    // every new placement is removed from recent placements.
-    // 3rd array created from recent placements, removing items within two from most recent placement.
-    // a random item is chosen from the 3rd array.
-    // if the third array is empty, then all placements are restored to the second array and the third array is assembled again. 
-    //global. called on resize and load. blockwidth should be assigned here also. needs to be one for left and one for right
-
-            // container for the container:
-   // display: flex;
-  //  position: fixed;
-  //  top: 0px;
- //   justify-content: end;
-//    flex-direction: column;
-
-// tail and grid-container added inside container.
-//background-image: linear-gradient(to top, rgba(220, 220, 220, 1), rgba(220, 220, 220, 0));
-//flex-grow: 1;
-//filter: blur(10px);
-//position: relative;
-//bottom: [blockwidth and a half plus blur] - but depends on tetromino
-
-/*window.addEventListener('load', myFunc);
-let element = document.createElement('div');
-function myFunc()
-{
-    
-element.style.position="fixed";
-element.style.top="0px";
-element.style.left="150px";
-element.style.width="40px";
-element.style.height="40px";
-element.style.backgroundColor="blue";
-document.querySelector('body').appendChild(element);
-
-let lastTime;
-
-function main(currentTime)
-{
-    window.requestAnimationFrame(main);
-    if(lastTime == undefined)
-    {
-        lastTime = currentTime;
-        return;
-    }
-    
-    let delay = currentTime - lastTime;
-    element.style.top = `${parseFloat(element.style.top) + delay * 0.1}%`;
-    lastTime = currentTime;
-}
-
-window.requestAnimationFrame(main);
-}
-
-*/
-
-// add option to turn off background
-//fix movement
-// tidy up code
-// is background performance heavy?
-
+// need to calibrate animation timings to screen size
+// make tetrominoes 3D?
 
 
 let lastBlockFall = 0
-let lastAnimationBlockFall = 0
 export let activeTetromino
 let nextTetromino = null
 let holdBlock = null
 let activeBlock = false
 let placementToggle = "left"
 let time
-let delay
 let lastAnimationBlockSpawn = 0
 let animationID
 let intervalID
+let intervalIDDown
+let intervalIDLeft
+let intervalIDRight
+let backgroundAnimationID
 let gameStarted = false
 let musicOn = false
+let backgroundOn = true
 let newGameLevel = 1
 let highScore = 0
 let gameOverScreen = false
 let pauseMenuScreen = false
 let controlsMenuOpen = false
+let keyPressed
 let controlSelected
 let customControlMenu = false
 let optionsMenuOpen = false
@@ -148,7 +46,6 @@ let ghostPieceActive = true
 let sideWidth = document.querySelector(".blank").scrollWidth; 
 let blockWidth = document.getElementById("game-board").scrollWidth / 10;
 let animationLength = Math.floor(sideWidth / (blockWidth * 2));
-let animationStarted = false;
 document.getElementById("new-game").addEventListener('click', startGame);
 document.getElementById("continue").addEventListener('click', continueGame);
 document.getElementById("options-button").addEventListener('click', optionsMenu);
@@ -156,13 +53,30 @@ document.getElementById("controls-button").addEventListener('click', controlsMen
 document.querySelectorAll(".back").forEach(element=>element.addEventListener('click', backButton));
 document.getElementById("music").addEventListener('click', toggleMusic);
 document.getElementById("ghost-select").addEventListener('click', toggleGhost);
+document.getElementById("background-select").addEventListener('click', toggleBackground);
 document.getElementById("level-up").addEventListener('mousedown', levelOption);
 document.getElementById("level-down").addEventListener('mousedown', levelOption);
 window.addEventListener('load', checkHighScore);
 window.addEventListener('load', createGameBoardBackground);
+window.addEventListener('resize', ()=>{
+    window.cancelAnimationFrame(backgroundAnimationID);
+    document.querySelectorAll(".animation-container").forEach(element=>{element.remove()});
+    lastAnimationBlockSpawn = 0;
+    placementSetup();
+    backgroundAnimationID = window.requestAnimationFrame(backgroundAnimation);
+})
 
 
-
+window.addEventListener('animationend', (e)=>{
+   
+    if(e.animationName == "fadeOut")
+        {
+            e.target.remove()
+        }
+    
+        
+    
+});
 
 
 
@@ -184,23 +98,11 @@ const placement =
     }
 }
 
-const animationElements = 
-{
-    left:
-    {
-        animationArray: Array(),
-        animationBlockReference: -1
-    },
-    right:
-    {
-        animationArray: Array(),
-        animationBlockReference: -1
-    }
-}
-animationSetup();
+//animationSetup();
+placementSetup();
 
 window.addEventListener('load', placementSetup);
-
+backgroundAnimationID = window.requestAnimationFrame(backgroundAnimation);
 
 function main(currentTime) 
 {
@@ -241,7 +143,43 @@ export function spawn()
         ghostPiece();
     }
     else
-    {
+    {       
+        let elevation = 0
+        while(true)
+        {
+            if(!activeTetromino[0].every(coordinate=>{return coordinate.y - elevation >= 0}))
+                {
+                    break
+                }
+                
+            if(activeTetromino[0].every(coordinate=>{
+                return blocks[coordinate.y - elevation - 1] === undefined || blocks[coordinate.y - elevation - 1][coordinate.x - 1].isOccupied === false
+            }))
+                {
+                    activeTetromino[0].forEach(coordinate=>{
+                        if(blocks[coordinate.y - elevation - 1] === undefined)
+                            {
+                                return
+                            }
+                        const element = document.createElement('div')
+                        const gameBoard = document.getElementById('game-board')
+                        element.style.gridRowStart = coordinate.y - elevation
+                        element.style.gridColumnStart = coordinate.x
+                        element.classList.add(activeTetromino.color)
+                        element.classList.add("block")
+                        gameBoard.appendChild(element) 
+                    })
+                    break
+                }
+            else
+                {
+                    elevation++
+                    continue
+                }
+                
+            
+        }
+
         gameOver()
     }
 }
@@ -374,7 +312,7 @@ function drawNonGameTetromino(container, tetromino, rotation)
 
 function backgroundAnimation(currentTime)
 {
-    window.requestAnimationFrame(backgroundAnimation);
+    backgroundAnimationID = window.requestAnimationFrame(backgroundAnimation);
     if(!lastAnimationBlockSpawn)
         {
             lastAnimationBlockSpawn = currentTime
@@ -385,91 +323,49 @@ function backgroundAnimation(currentTime)
             spawnNewBackgroundPiece(placementToggle);
             placementToggle === "right" ? placementToggle = "left" : placementToggle = "right";
         } 
-    
-    if(!lastAnimationBlockFall) 
-        {
-            lastAnimationBlockFall = currentTime;
-            return
-        }
-    delay = currentTime - lastAnimationBlockFall;
-    animationElements.left.animationArray.forEach(animationBlockFall);
-    animationElements.right.animationArray.forEach(animationBlockFall);
-    lastAnimationBlockFall = currentTime;
 }
 
 function spawnNewBackgroundPiece(side)
 {
-    animationElements[side].animationBlockReference++;
-    if(animationElements[side].animationBlockReference == animationLength * 3) 
-        {
-            animationElements[side].animationBlockReference = 0;
-            
-        }
-    let objRef = animationElements[side].animationArray[animationElements[side].animationBlockReference];
-    if (objRef.active) return;
-    objRef.active = true;
     const container = document.createElement("div");
-    container.id = `container${animationElements[side].animationBlockReference}${side}`;
-    objRef.container = container.id;
-    objRef.placement = setPlacement(side);
-    container.style[side] = objRef.placement;
-    container.style.zIndex = "0";
-
-    
-    
+    container.classList.add("animation-container");
+    container.style[side] = setPlacement(side);
+    container.style.height = "100vh";
     const tail = document.createElement("div");
     tail.className = "tail";
     const gridContainer = document.createElement("div");
-    tail.style.opacity = "0.3";
     gridContainer.style.opacity = "0.5";
     const newPiece = tetrominoes[Math.floor(Math.random() * 7)];
+    if(newPiece.color == "cyan") lastAnimationBlockSpawn += 120;
     drawNonGameTetromino(gridContainer, newPiece, 1);
     container.appendChild(tail);
     container.appendChild(gridContainer);
-    tail.style.backgroundImage = "linear-gradient(to top, rgba(120, 120, 120, 1), rgba(120, 120, 120, 0))";
-    tail.style.flexGrow = "1";
-    tail.style.filter = "blur(10px)";
-    tail.style.position = "relative";
-    container.style.display = "flex";
-    container.style.position = "fixed";
-    container.style.justifyContent = "end";
-    container.style.flexDirection = "column";
-    container.style.opacity = "1";
-    
 
     switch(newPiece.color)
     {
         case "cyan": 
-                container.style.top = "-20vh";
-                container.style.height = "20vh";
-                objRef.maxHeight = 140;
                 tail.style.bottom = `-${blockWidth + 10}px`;
+                container.classList.add("animation4Block");
                 break
 
             
         case "yellow":
-                container.style.top = "-10vh";
-                container.style.height = "10vh";
-                objRef.maxHeight = 120;
                 tail.style.bottom = `-${blockWidth + 10}px`;
+                container.classList.add("animation2Block");
                 break
 
             
         case "blue":
         case "orange":
-                container.style.top = "-15vh";
-                container.style.height = "15vh";
-                objRef.maxHeight = 130;
                 tail.style.bottom = `-${blockWidth * 2.5 + 10}px`;
+                container.classList.add("animation3Block");
                 break
             
         case "green":
         case "purple":
         case "red":
-                container.style.top = "-15vh";
-                container.style.height = "15vh";
-                objRef.maxHeight = 130;
                 tail.style.bottom = `-${blockWidth * 1.5 + 10}px`;
+                container.classList.add("animation3Block");
                 break
     }
 
@@ -477,36 +373,12 @@ function spawnNewBackgroundPiece(side)
 
     document.querySelector('body').appendChild(container);
 
-    
-
-    }
-
-function animationSetup()
-{
-    for(let i = 0; i < animationLength * 3; i++)
-        {
-            animationElements.left.animationArray[i] = 
-                {
-                    active: false,
-                    container: null,
-                    maxHeight: null,
-                    placement: null
-                }
-            animationElements.right.animationArray[i] =
-                {
-                    active: false,
-                    container: null,
-                    maxHeight: null,
-                    placement: null
-                }
-        }
 }
-
     
 function placementSetup()
     {
         animationLength = Math.round(sideWidth / (blockWidth * 2));
-        animationSetup();
+      //  animationSetup();
         sideWidth = document.querySelector(".blank").scrollWidth; 
         blockWidth = document.getElementById("game-board").scrollWidth / 10;
         let spacing = 1; 
@@ -518,50 +390,32 @@ function placementSetup()
                 placement.right.currentPlacementArray[i] = i;
                 spacing += parseInt(blockWidth * 2);
             }
-        if(!animationStarted) 
-            {
-                window.requestAnimationFrame(backgroundAnimation);
-                animationStarted = true;
-            }
+
+            
     }
 
     //the actual placement
 function setPlacement(side)
 {
-    if(!placement[side].currentPlacementArray.length)
+    let index = Math.floor(Math.random() * placement[side].currentPlacementArray.length);
+    placement[side].currentPlacement = placement[side].currentPlacementArray[index];
+    placement[side].currentPlacementArray.splice(index, 1);
+    if(placement[side].currentPlacementArray.length == 1)
         {
             for(let i = 0; i < animationLength; i++)
                 {
                     placement[side].currentPlacementArray[i] = i;
+                    
                 }
+            placement[side].currentPlacementArray.splice(placement[side].currentPlacement, 1);
+            
         }
-    let index = Math.floor(Math.random() * placement[side].currentPlacementArray.length);
-    placement[side].currentPlacement = placement[side].currentPlacementArray[index];
-    placement[side].currentPlacementArray.splice(index, 1);
+  
+        
     return placement[side].placementArray[placement[side].currentPlacement];
 }
 
     
-
-
-
-function animationBlockFall(element)
-{
-    if(!element.active) return  
-    if(parseInt(document.getElementById(element.container).style.height) > element.maxHeight)
-        {
-            document.getElementById(element.container).style.opacity = (parseFloat(document.getElementById(element.container).style.opacity) - delay * 0.001);
-            if(document.getElementById(element.container).style.opacity <= 0)
-                {
-                    document.getElementById(element.container).remove();
-                    element.active = false;  
-                }
-            return
-        } 
-    document.getElementById(element.container).style.height = `${parseFloat(document.getElementById(element.container).style.height) + delay * 0.045}vh`;
-
-}
-
 
 
 function flash()
@@ -725,6 +579,28 @@ function levelOption(event)
 
 }
 
+function toggleBackground()
+{
+    if(backgroundOn)
+        {
+            backgroundOn = false;
+            window.cancelAnimationFrame(backgroundAnimationID);
+            document.querySelectorAll(".animation-container").forEach(element=>{element.remove()});
+            lastAnimationBlockSpawn = 0;
+            document.getElementById("background-on").style.fontSize = "20px";
+            document.getElementById("background-off").style.fontSize = "30px";
+        }
+    else
+        {
+            
+            backgroundOn = true;
+            placementSetup();
+            backgroundAnimationID = window.requestAnimationFrame(backgroundAnimation);
+            document.getElementById("background-on").style.fontSize = "30px";
+            document.getElementById("background-off").style.fontSize = "20px";
+
+        }
+}
 
 // start game
 
@@ -826,6 +702,12 @@ function check(direction)
                     }
                 return blocks[coordinate.y - 1][coordinate.x - 2].isOccupied === false
             })
+        
+        case "left2":
+            return activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
+                
+                return blocks[coordinate.y - 1][coordinate.x - 3].isOccupied === false
+            })
 
         case "right":
             return activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
@@ -836,6 +718,12 @@ function check(direction)
                 return blocks[coordinate.y - 1][coordinate.x].isOccupied === false
             })
 
+        case "right2":
+            return activeTetromino[activeTetromino.current_rotation].every(coordinate=>{
+                
+                return blocks[coordinate.y - 1][coordinate.x + 1].isOccupied === false
+            })
+
         case 0:
         case 1:
         case 2:
@@ -843,6 +731,7 @@ function check(direction)
             return activeTetromino[direction].every(coordinate=>{
                 if (blocks[coordinate.y - 1] === undefined || blocks[coordinate.y - 1][coordinate.x - 1] === undefined)
                     {
+                        wallKick(direction)
                         return false
                     }
                 return blocks[coordinate.y - 1][coordinate.x - 1].isOccupied === false
@@ -1033,7 +922,11 @@ function moveDown()
     else
     {
         addBlocks()
+        clearInterval(intervalIDLeft)
+        clearInterval(intervalIDRight)
+        clearInterval(intervalIDDown)
     }
+    lastBlockFall = time
 
 }
 
@@ -1083,7 +976,6 @@ function moveRight()
         }
         drawActive()
         ghostPiece()
-   
     }
 
 }
@@ -1165,9 +1057,9 @@ function counterClockwise()
                 ghostPiece()
                 }
             }
-            elsecheck
+            else
             {
-                if (activeTetromino.current_rotation - 1)
+                if (check(activeTetromino.current_rotation - 1))
                 {
                 activeTetromino.current_rotation--
                 drawActive()
@@ -1190,7 +1082,7 @@ function counterClockwise()
             }
             else
             {
-                if (activeTetromino.current_rotation - 1)
+                if (check(activeTetromino.current_rotation - 1))
                 {
                 activeTetromino.current_rotation--
                 drawActive()
@@ -1227,6 +1119,9 @@ function hardDrop()
                 })
             drawActive()
             addBlocks()
+            clearInterval(intervalIDLeft)
+            clearInterval(intervalIDRight)
+            clearInterval(intervalIDDown)
         }
     else
         {
@@ -1258,7 +1153,10 @@ function hardDrop()
                     coordinate.y += drop
                 })
                 drawActive()
-                addBlocks()        
+                addBlocks()
+                clearInterval(intervalIDLeft)
+                clearInterval(intervalIDRight)
+                clearInterval(intervalIDDown)    
         }
 
 }
@@ -1349,6 +1247,7 @@ window.addEventListener('keydown', e =>
                         }
                     else
                         {
+                            if(keyPressed == controls.pause) return
                             pauseMenu()
                             return
                         }
@@ -1362,6 +1261,7 @@ window.addEventListener('keydown', e =>
                         }
                     else
                         {
+                            if(keyPressed == controls.escape) return
                             pauseMenu()
                             return
                         }
@@ -1378,27 +1278,44 @@ window.addEventListener('keydown', e =>
             break
 
         case controls.clockwise:
+            if(keyPressed == controls.clockwise || keyPressed == controls.anticlockwise) return
             clockwise()
             break
 
         case controls.anticlockwise:
+            if(keyPressed == controls.clockwise || keyPressed == controls.anticlockwise) return
             counterClockwise()
             break
         
         case controls.left:
+            clearInterval(intervalIDLeft)
+            clearInterval(intervalIDRight)
             moveLeft()
+            intervalIDLeft = setTimeout(()=>{
+                intervalIDLeft = setInterval(moveLeft, 70)
+            }, 50)
             break
 
         case controls.right:
+            clearInterval(intervalIDLeft)
+            clearInterval(intervalIDRight)
             moveRight()
+            intervalIDRight = setTimeout(()=>{
+                intervalIDRight = setInterval(moveRight, 70)
+            }, 50)
+            
             break
 
         case controls.down:
+            if(keyPressed == controls.down) return
             moveDown()
-            lastBlockFall = time
+            intervalIDDown = setTimeout(()=>{
+                intervalIDDown = setInterval(moveDown, 50)
+            }, 50)
             break
         
         case controls.hold:
+            if(keyPressed == controls.hold) return
             hold()
             break
 
@@ -1406,6 +1323,150 @@ window.addEventListener('keydown', e =>
         case controls.escape:
             pauseMenu()
     }
+    keyPressed = e.key;
+
 })
+
+
+window.addEventListener('keyup', e =>
+{
+    keyPressed = null
+    switch(e.key)
+        {
+            case controls.right:
+                clearInterval(intervalIDRight)
+                break
+            
+            case controls.left:
+                clearInterval(intervalIDLeft)
+                break
+            
+            case controls.down:
+                clearInterval(intervalIDDown)
+                break
+        }
+}
+)
+
+function wallKick(direction)
+{
+    let xValues = Array()
+    activeTetromino[activeTetromino.current_rotation].forEach(coordinate=>{
+        xValues.push(coordinate.x)
+    });
+    if(Math.min(...xValues) == 1)
+        {
+            if (!check("right")) return
+                
+            for (let key in activeTetromino)
+            {
+                key = parseInt(key)
+                if (!isNaN(key))
+                {
+                    activeTetromino[key].forEach(coordinate=>
+                    {
+                        coordinate.x++
+                    })
+                }
+            }
+            if(check(direction))
+                {
+                    activeTetromino.current_rotation = direction;
+                    drawActive()
+                    ghostPiece()
+                }
+            else
+                {
+                    for (let key in activeTetromino)
+                        {
+                            key = parseInt(key)
+                            if (!isNaN(key))
+                            {
+                                activeTetromino[key].forEach(coordinate=>
+                                {
+                                    coordinate.x--
+                                })
+                            }
+                        }
+                }
+                
+        }
+    else if(Math.max(...xValues) == 10)
+        {
+            if(activeTetromino.color == "cyan")
+                {
+                    if(!check("left2")) return
+
+                    for (let key in activeTetromino)
+                        {
+                            key = parseInt(key)
+                            if (!isNaN(key))
+                            {
+                                activeTetromino[key].forEach(coordinate=>
+                                {
+                                    coordinate.x-=2
+                                })
+                            }
+                        }
+                        if(check(direction))
+                            {
+                                activeTetromino.current_rotation = direction;
+                                drawActive()
+                                ghostPiece()
+                            }
+                        else
+                            {
+                                for (let key in activeTetromino)
+                                    {
+                                        key = parseInt(key)
+                                        if (!isNaN(key))
+                                        {
+                                            activeTetromino[key].forEach(coordinate=>
+                                            {
+                                                coordinate.x+=2
+                                            })
+                                        }
+                                    }
+                            }
+                        return
+                } 
+            if (!check("left")) return
+            
+            for (let key in activeTetromino)
+            {
+                key = parseInt(key)
+                if (!isNaN(key))
+                {
+                    activeTetromino[key].forEach(coordinate=>
+                    {
+                        coordinate.x--
+                    })
+                }
+            }
+            if(check(direction))
+                {
+                    activeTetromino.current_rotation = direction;
+                    drawActive()
+                    ghostPiece()
+                }
+            else
+                {
+                    for (let key in activeTetromino)
+                        {
+                            key = parseInt(key)
+                            if (!isNaN(key))
+                            {
+                                activeTetromino[key].forEach(coordinate=>
+                                {
+                                    coordinate.x++
+                                })
+                            }
+                        }
+                }
+                
+        }
+}
+
+
 
 
