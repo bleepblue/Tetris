@@ -1,8 +1,7 @@
 import { linesCleared } from "./score.js"
 import { spawn } from "./game.js"
 import { drawBlocks } from "./game.js"
-import { activeBlockFunc } from "./game.js"
-import { activeTetromino } from "./game.js"
+import { activeTetromino, values } from "./game.js"
 
 export let blocks = []
 let Rows = []
@@ -27,7 +26,7 @@ for (let i = 0; i < 20; i++)
 export function addBlocks ()
 {
     
-    activeBlockFunc()
+    values.activeBlock = false;
     activeTetromino[activeTetromino.current_rotation].forEach(coordinate=>
     {
         // add blocks to data structure
